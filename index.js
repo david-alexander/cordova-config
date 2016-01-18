@@ -38,6 +38,26 @@ module.exports = (function () {
 			}
 
 			return doc;
+		},
+
+		/**
+		 * Convert an absolute XPath expression to an equivalent expression relative to the root.
+		 * This is required because node-elementtree does not support absolute XPath expressions.
+		 *
+		 * @param  {ElementTree}	doc	The ElementTree document that the XPath applies to.
+		 * @param  {string}		xpath	An XPath expression that may be relative or absolute.
+		 * @return {string}			A relative XPath expression.
+		 */
+		fixAbsoluteXPath: function(doc, path)
+		{
+			var prefix = '/' + doc.getroot().tag;
+
+			if (path && path.indexOf(prefix) === 0)
+			{
+				path = path.replace(prefix, '.');
+			}
+
+			return path;
 		}
 	};
 
@@ -305,13 +325,26 @@ module.exports = (function () {
 	 * This method adds the raw XML provided to the config.xml file.
 	 *
 	 * @param {string}	raw			The raw XML that should be added to the config file.
+	 * @param {string}	atXPath			(optional) This XPath expression will be used to locate the parent for the added element. The first match will be used.
+	 *						If no matches are found, the element will not be added. If this parameter is not specified, the element will be added as a child of the root element.
+	 * @param {string}	ifXPathDoesNotExist	(optional) If specified, this XPath expression will be checked for matches before adding the element. If any matches are found, the element will not be
+	 *						added. This allows you to check whether the element you want to add has already been added.
 	 */
-	Config.prototype.addRawXML = function (raw) {
-		// Parse the raw XML
-		var xml = et.XML(raw);
+	Config.prototype.addRawXML = function (raw, atXPath, ifXPathDoesNotExist) {
+		atXPath = _this.fixAbsoluteXPath(this._doc, atXPath);
+		ifXPathDoesNotExist = _this.fixAbsoluteXPath(this._doc, ifXPathDoesNotExist);
 
-		// Append the XML
-		this._root.append(xml);
+		var parent = atXPath ? this._doc.find(atXPath) : this._root;
+		var alreadyExists = ifXPathDoesNotExist && this._doc.find(ifXPathDoesNotExist) !== null;
+
+		if (parent !== null && !alreadyExists)
+		{
+			// Parse the raw XML
+			var xml = et.XML(raw);
+
+			// Append the XML
+			parent.append(xml);
+		}
 	};
 
 	/**
