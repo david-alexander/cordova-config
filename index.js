@@ -239,7 +239,7 @@ module.exports = (function () {
 
 		if (preference) {
 			// If the preference already exists, remove it first
-			this.platformElement.remove(preference);
+			platformElement.remove(preference);
 		}
 
 		// Create the preference element
