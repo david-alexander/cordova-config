@@ -248,7 +248,7 @@ module.exports = (function () {
 		preference.attrib.value = value;
 
 		// Append the preference to the platform element
-		this.platformElement.append(preference);
+		platformElement.append(preference);
 	};
 
 	/**
