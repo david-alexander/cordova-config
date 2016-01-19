@@ -219,14 +219,27 @@ module.exports = (function () {
 	 * Adds or updates the preference `name` with the
 	 * @param {string}	name		The name of the preference.
 	 * @param {any}		value		The value of the preference.
+	 * @param {string}	platform	(optional) The specific platform (e.g. 'ios' or 'android') to which the preference applies.
 	 */
-	Config.prototype.setPreference = function (name, value) {
+	Config.prototype.setPreference = function (name, value, platform) {
+		// If a platform is specified, find the <platform /> element for that platform.
+		var platformElement = platform ? this._doc.find('./platform/[@name="' + platform + '"]') : this._root;
+
+		// If the platform element doesn't exist, create it.
+		if (platformElement === null)
+		{
+			platformElement = new et.Element('platform');
+			platformElement.attrib.name = platform;
+
+			this._root.append(platformElement);
+		}
+
 		// Retrieve the correct preference
-		var preference = this._doc.find('./preference/[@name="' + name + '"]');
+		var preference = platformElement.find('./preference/[@name="' + name + '"]');
 
 		if (preference) {
 			// If the preference already exists, remove it first
-			this._root.remove(preference);
+			this.platformElement.remove(preference);
 		}
 
 		// Create the preference element
@@ -234,8 +247,8 @@ module.exports = (function () {
 		preference.attrib.name = name;
 		preference.attrib.value = value;
 
-		// Append the preference to the root tag
-		this._root.append(preference);
+		// Append the preference to the platform element
+		this.platformElement.append(preference);
 	};
 
 	/**
