@@ -365,8 +365,15 @@ module.exports = (function () {
 	 *
 	 * @returns {Promise}			A promise that resolves when the file is written.
 	 */
-	Config.prototype.write = function () {
-		return pify(fs.writeFile, Promise)(this._file, this._doc.write({indent: 4}), 'utf8');
+	Config.prototype.write = function (callback) {
+		var result = pify(fs.writeFile, Promise)(this._file, this._doc.write({indent: 4}), 'utf8');
+
+		if (typeof(callback) === 'function')
+		{
+			result = result.then(callback);
+		}
+
+		return result;
 	};
 
 	/**
